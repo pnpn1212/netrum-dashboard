@@ -54,9 +54,3 @@ A unified, rate-limit-safe dashboard for monitoring Netrum nodes using public AP
 - React + Vite
 - TailwindCSS
 - Public Netrum APIs
-
-## 🚀 Run Locally
-
-```bash
-npm install
-npm run dev
