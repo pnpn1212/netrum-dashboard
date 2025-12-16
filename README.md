@@ -13,35 +13,6 @@ A unified, rate-limit-safe dashboard for monitoring Netrum nodes using public AP
 - Modern Web3 UI with glassmorphism & dark theme
 - Responsive layout (desktop & mobile)
 
-## 🧩 Implemented Public Endpoints
-
-### Lite Node Server
-- `/lite/nodes/stats`
-- `/lite/nodes/active`
-- `/lite/nodes/id/{node_id}`
-
-### Registration
-- `/register/status`
-
-### Task Provider
-- `/polling/node-stats/{node_id}`
-
-### Metrics & Sync
-- `/metrics/requirements`
-- `/metrics/check-cooldown/{node_id}`
-- `/metrics/node-status/{node_id}`
-
-### Mining
-- `/mining/status/{node_id}`
-- `/mining/cooldown/{node_id}`
-
-### Live Mining Log
-- `/live-log/status/{node_address}`
-
-### Claim Tokens
-- `/claim/status/{node_address}`
-- `/claim/history/{node_address}`
-
 ## 🛡 Rate Limit Protection
 
 - Each endpoint is called no more than once every 30 seconds
