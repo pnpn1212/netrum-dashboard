@@ -24,7 +24,12 @@ export default function ActiveNodes({ onSelect }) {
   }, []);
 
   if (nodes === null) return <Skeleton />;
-  if (error) return <div className="text-red-400 text-sm">Will be upgraded soon</div>;
+  if (error)
+  return (
+    <div className="text-yellow-400/80 font-semibold text-sm">
+      Will be upgraded soon
+    </div>
+  );
 
   return (
     <ul className="space-y-1 text-xs">

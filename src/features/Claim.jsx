@@ -75,13 +75,13 @@ export default function Claim({ address, setNodeId }) {
   if (!data) return <Skeleton />;
 
   return (
-    <ul className="space-y-1 text-sm">
-      <li><span className="text-gray-400">Wallet:</span> {data.nodeAddress}</li>
-      <li><span className="text-gray-400">Node ID:</span> {data.nodeIdHistory}</li>
-      <li><span className="text-gray-400">Last Claim:</span> {formatTime(data.lastClaimTime)}</li>
-      <li><span className="text-gray-400">Mining Duration:</span> {data.requirements?.miningDuration || "-"}</li>
-      <li><span className="text-gray-400">Remaining Time:</span> {data.miningSession?.formattedRemainingTime || "-"}</li>
-      <li><span className="text-gray-400">Mined:</span> {data.minedTokensFormatted || "0"} NPT</li>
+    <ul className="space-y-1">
+      {/* <li><span className="text-gray-400 font-semibold">Wallet:</span> {data.nodeAddress}</li> */}
+      <li><span className="text-gray-400 font-semibold">Node ID:</span> {data.nodeIdHistory}</li>
+      <li><span className="text-gray-400 font-semibold">Last Claim:</span> {formatTime(data.lastClaimTime)}</li>
+      <li><span className="text-gray-400 font-semibold">Mining Duration:</span> {data.requirements?.miningDuration || "-"}</li>
+      <li><span className="text-gray-400 font-semibold">Remaining Time:</span> {data.miningSession?.formattedRemainingTime || "-"}</li>
+      <li><span className="text-gray-400 font-semibold">Mined:</span> {data.minedTokensFormatted || "0"} NPT</li>
     </ul>
   );
 }

@@ -1,21 +1,18 @@
-import favicon from '../assets/favicon.png';
+import favicon from '../assets/logo.png';
 
 export default function Header() {
   return (
-    <header className="bg-[#f9fafb] border-b border-gray-200 shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo + Name */}
-        <div className="flex items-center gap-3 font-bold tracking-wide text-2xl text-gray-900">
+    <header className="bg-white border border-gray-200 rounded-xl shadow-md mx-4 my-4">
+      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="flex items-center">
           <img 
             src={favicon} 
             alt="Netrum" 
-            className="w-8 h-8 object-contain bg-transparent" 
+            className="h-12 w-auto object-contain bg-transparent" 
           />
-          <span>Netrum</span>
         </div>
 
-        {/* Subtitle */}
-        <div className="text-sm text-gray-600 font-medium">
+        <div className="text-base text-gray-400 font-semibold">
           Node Dashboard
         </div>
       </div>

@@ -3,7 +3,7 @@ import { api } from "../api/netrumApi";
 import Section from "../components/Section";
 import StatCard from "../components/Card";
 import Skeleton from "../components/Skeleton";
-import ErrorNotice from "../components/ErrorNotice";
+import ErrorNotice from "../components/ErrorBoundary";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);

@@ -47,31 +47,31 @@ export default function NodeStats({ nodeId }) {
   const statusIcon = isActive ? "✅" : "❌";
 
   return (
-    <ul className="space-y-1 text-sm">
+    <ul className="space-y-1">
       <li>
-        <span className="text-gray-400">Status:</span>{" "}
+        <span className="text-gray-400 font-semibold">Status:</span>{" "}
         <span className="font-semibold">
           {statusText} <span>{statusIcon}</span>
         </span>
       </li>
       <li>
-        <span className="text-gray-400">Meets Requirements:</span>{" "}
+        <span className="text-gray-400 font-semibold">Meets Requirements:</span>{" "}
         {lastSync.meetsRequirements ? "✅" : "❌"}
       </li>
       <li>
-        <span className="text-gray-400">CPU:</span> {metrics.cpu || "-"} cores
+        <span className="text-gray-400 font-semibold">CPU:</span> {metrics.cpu || "-"} cores
       </li>
       <li>
-        <span className="text-gray-400">RAM:</span> {metrics.ramGB || "-"} GB
+        <span className="text-gray-400 font-semibold">RAM:</span> {metrics.ramGB || "-"} GB
       </li>
       <li>
-        <span className="text-gray-400">Disk:</span> {metrics.diskGB || "-"} GB
+        <span className="text-gray-400 font-semibold">Disk:</span> {metrics.diskGB || "-"} GB
       </li>
       <li>
-        <span className="text-gray-400">Download:</span> {metrics.speedMbps || "-"} Mbps
+        <span className="text-gray-400 font-semibold">Download:</span> {metrics.speedMbps || "-"} Mbps
       </li>
       <li>
-        <span className="text-gray-400">Upload:</span> {metrics.uploadSpeedMbps || "-"} Mbps
+        <span className="text-gray-400 font-semibold">Upload:</span> {metrics.uploadSpeedMbps || "-"} Mbps
       </li>
     </ul>
   );

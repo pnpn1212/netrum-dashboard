@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import favicon from "./assets/favicon.ico";
+import favicon from "./assets/logo.png";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Card from "./components/Card";
@@ -8,15 +8,18 @@ import ActiveNodes from "./features/ActiveNodes";
 import NodeStats from "./features/NodeStats";
 import TaskStats from "./features/TaskStats";
 import Claim from "./features/Claim";
+import Balance from "./features/Balance";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import gradientVideo from "./assets/Gradient.mp4";
 
 const cardIcons = {
   network: "🌐",
   activeNodes: "📊",
   nodeAddress: "📥",
   nodestats: "🖥",
-  task: "📝",   
+  task: "📝",
   claim: "💰",
+  balance: "💵",
 };
 
 export default function App() {
@@ -25,18 +28,6 @@ export default function App() {
   const [nodeId, setNodeId] = useState(null);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const link = document.createElement("link");
-    link.rel = "icon";
-    link.href = favicon;
-    document.head.appendChild(link);
-
-    return () => {
-      document.head.removeChild(link);
-    };
-  }, []);
-
-  // debounce address input
   useEffect(() => {
     const timer = setTimeout(() => {
       if (rawAddress === "") {
@@ -57,52 +48,71 @@ export default function App() {
   }, [rawAddress]);
 
   return (
-    <div className="min-h-screen bg-[#060914] text-gray-100">
-      <div className="max-w-7xl mx-auto px-6 py-10 space-y-12">
-        <Header />
+    <div className="relative min-h-screen overflow-hidden text-white">
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute top-0 left-0 w-full h-full object-cover z-0"
+      >
+        <source src={gradientVideo} type="video/mp4" />
+      </video>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card title={<span>{cardIcons.network} Network Overview</span>}>
-            <LiteStats />
-            <div className="text-xs text-gray-500 mt-2">
-              The data will refresh every 30 seconds
-            </div>
-          </Card>
-          <Card title={<span>{cardIcons.activeNodes} Active Nodes List</span>}>
-            <ActiveNodes />
-          </Card>
-        </div>
+      <div className="relative z-10 min-h-screen bg-black/30">
+        <div className="max-w-7xl mx-auto px-6 py-10 space-y-12">
+          <Header />
 
-        <Card title={<span>{cardIcons.nodeAddress} Node Address</span>}>
-          <input
-            className="w-full bg-transparent border border-white/10 rounded-xl p-3 text-sm"
-            placeholder="0x..."
-            value={rawAddress}
-            onChange={(e) => setRawAddress(e.target.value.trim())}
-          />
-          <div className="text-xs text-gray-500 mt-2">
-            Address is validated & debounced to prevent rate limit
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card title={<span className="text-lg md:text-xl font-bold flex items-center gap-2">{cardIcons.network} Network Overview</span>} className="bg-transparent border-none">
+              <LiteStats />
+              <div className="text-xs text-gray-200 font-semibold opacity-70 mt-2">
+                The data will refresh every 30 seconds
+              </div>
+            </Card>
+            <Card title={<span className="text-lg md:text-xl font-bold flex items-center gap-2">{cardIcons.activeNodes} Active Nodes List</span>} className="bg-transparent border-none">
+              <ActiveNodes />
+            </Card>
           </div>
-          {error && <div className="text-red-500 text-xs mt-1">{error}</div>}
-        </Card>
 
-        {address && !error && (
-          <ErrorBoundary>
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card title={<span>{cardIcons.nodestats} Node Status</span>}>
-                <NodeStats nodeId={nodeId} />
-              </Card>
-              <Card title={<span>{cardIcons.task} Task Status</span>}>
-                <TaskStats nodeId={nodeId} />
-              </Card>
-              <Card title={<span>{cardIcons.claim} Claim Status</span>}>
-                <Claim address={address} setNodeId={setNodeId} />
-              </Card>
-            </div>
-          </ErrorBoundary>
-        )}
+          <Card title={<span className="text-lg md:text-xl font-bold flex items-center gap-2">{cardIcons.nodeAddress} Node Address</span>} className="bg-transparent border-none mt-6">
+            <input
+              className="w-full bg-transparent border border-white/20 rounded-xl p-3 text-sm text-white placeholder-gray-400"
+              placeholder="0x..."
+              value={rawAddress}
+              onChange={(e) => setRawAddress(e.target.value.trim())}
+            />
+            {error && (
+              <div className="text-red-600 font-semibold opacity-70 text-xs mt-1">
+                {error}
+              </div>
+            )}
+          </Card>
 
-        <Footer />
+          {address && !error && (
+            <ErrorBoundary>
+              <div className="grid md:grid-cols-2 gap-6 mt-6">
+                {/* Hàng 1: Node Status | Task Status */}
+                <Card title={<span className="text-lg md:text-xl font-bold flex items-center gap-2">{cardIcons.nodestats} Node Status</span>} className="bg-transparent border-none">
+                  <NodeStats nodeId={nodeId} />
+                </Card>
+                <Card title={<span className="text-lg md:text-xl font-bold flex items-center gap-2">{cardIcons.task} Task Status</span>} className="bg-transparent border-none">
+                  <TaskStats nodeId={nodeId} />
+                </Card>
+
+                {/* Hàng 2: Balance | Claim Status */}
+                <Card title={<span className="text-lg md:text-xl font-bold flex items-center gap-2">{cardIcons.balance} Balance</span>} className="bg-transparent border-none">
+                  <Balance wallet={address} />
+                </Card>
+                <Card title={<span className="text-lg md:text-xl font-bold flex items-center gap-2">{cardIcons.claim} Claim Status</span>} className="bg-transparent border-none">
+                  <Claim address={address} setNodeId={setNodeId} />
+                </Card>
+              </div>
+            </ErrorBoundary>
+          )}
+
+          <Footer />
+        </div>
       </div>
     </div>
   );

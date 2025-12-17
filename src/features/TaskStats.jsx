@@ -57,24 +57,24 @@ export default function TaskStats({ nodeId }) {
   } = taskData;
 
   return (
-    <ul className="space-y-1 text-sm">
+    <ul className="space-y-1">
       <li>
-        <span className="text-gray-400">Last Polled:</span> {formatTime(lastPolledAt)}
+        <span className="text-gray-400 font-semibold">Last Polled:</span> {formatTime(lastPolledAt)}
       </li>
       <li>
-        <span className="text-gray-400">Last Task Completed:</span> {formatTime(lastTaskCompleted)}
+        <span className="text-gray-400 font-semibold">Last Task Completed:</span> {formatTime(lastTaskCompleted)}
       </li>
       <li>
-        <span className="text-gray-400">Last Task Assigned:</span> {formatTime(lastTaskAssigned)}
+        <span className="text-gray-400 font-semibold">Last Task Assigned:</span> {formatTime(lastTaskAssigned)}
       </li>
       <li>
-        <span className="text-gray-400">TTS Power Status:</span> {ttsPowerStatus || "-"}
+        <span className="text-gray-400 font-semibold">TTS Power Status:</span> {ttsPowerStatus || "-"}
       </li>
       <li>
-        <span className="text-gray-400">Available RAM:</span> {(availableRam ?? 0).toLocaleString()} GB
+        <span className="text-gray-400 font-semibold">Available RAM:</span> {(availableRam ?? 0).toLocaleString()} GB
       </li>
       <li>
-        <span className="text-gray-400">Total Tasks:</span> {(taskCount ?? 0).toLocaleString("en-US")}
+        <span className="text-gray-400 font-semibold">Total Tasks:</span> {(taskCount ?? 0).toLocaleString("en-US")}
       </li>
     </ul>
   );

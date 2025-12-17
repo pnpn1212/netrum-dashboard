@@ -38,12 +38,22 @@ export default function LiteStats() {
   if (!data) return <Skeleton />;
 
   return (
-    <ul className="space-y-1">
-      <li>Time: {formatTime(data.time)}</li>
-      <li>Total Nodes: {data.total.toLocaleString()}</li>
-      <li>Active: {data.active.toLocaleString()}</li>
-      <li>Inactive: {data.inactive.toLocaleString()}</li>
-      <li>Total Tasks: {data.totalTasks.toLocaleString("en-US")}</li>
-    </ul>
+<ul className="space-y-1">
+  <li>
+    <span className="text-gray-300 font-semibold">Time:</span> {formatTime(data.time)}
+  </li>
+  <li>
+    <span className="text-gray-300 font-semibold">Total Nodes:</span> {data.total.toLocaleString()}
+  </li>
+  <li>
+    <span className="text-gray-300 font-semibold">Active:</span> {data.active.toLocaleString()}
+  </li>
+  <li>
+    <span className="text-gray-300 font-semibold">Inactive:</span> {data.inactive.toLocaleString()}
+  </li>
+  <li>
+    <span className="text-gray-300 font-semibold">Total Tasks:</span> {data.totalTasks.toLocaleString("en-US")}
+  </li>
+</ul>
   );
 }
