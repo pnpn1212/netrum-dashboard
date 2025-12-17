@@ -2,13 +2,13 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,jsx,ts,tsx}", // thêm ts/tsx cho tương thích nếu dùng TS
+    "./src/**/*.{js,jsx,ts,tsx}", 
   ],
   theme: {
     extend: {
       backdropBlur: {
-        xs: "2px", // giữ như cũ
-        sm: "4px", // thêm tùy chọn mờ nhỏ
+        xs: "2px", 
+        sm: "4px", 
       },
       colors: {
         "gradient-start": "#1e3a8a",

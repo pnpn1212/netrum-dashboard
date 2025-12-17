@@ -81,7 +81,8 @@ export default function Claim({ address, setNodeId }) {
       <li><span className="text-gray-400 font-semibold">Last Claim:</span> {formatTime(data.lastClaimTime)}</li>
       <li><span className="text-gray-400 font-semibold">Mining Duration:</span> {data.requirements?.miningDuration || "-"}</li>
       <li><span className="text-gray-400 font-semibold">Remaining Time:</span> {data.miningSession?.formattedRemainingTime || "-"}</li>
-      <li><span className="text-gray-400 font-semibold">Mined:</span> {data.minedTokensFormatted || "0"} NPT</li>
+      <li><span className="text-gray-400 font-semibold">Mined:</span> {" "}{(parseFloat(data.minedTokensFormatted) || 0).toFixed(2)} NPT
+      </li>
     </ul>
   );
 }
