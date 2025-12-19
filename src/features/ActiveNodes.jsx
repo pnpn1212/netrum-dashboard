@@ -30,7 +30,7 @@ export default function ActiveNodes() {
 
         <div>
           <h2 className="text-sm font-bold uppercase tracking-wider">
-            Network Participants
+            Active Nodes
           </h2>
           <p className="text-[10px] text-muted-foreground mt-0.5">
             Live node activity and performance
