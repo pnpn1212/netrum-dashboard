@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import favicon from "./assets/logo.png";
+import favicon from "./assets/favicon.ico";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Card from "./components/Card";
@@ -19,6 +19,14 @@ export default function App() {
   const [nodeId, setNodeId] = useState(null);
   const [error, setError] = useState("");
   const [cooldownActive, setCooldownActive] = useState(false);
+
+  useEffect(() => {
+    const link = document.querySelector("link[rel*='icon']") || document.createElement("link");
+    link.type = "image/x-icon";
+    link.rel = "icon";
+    link.href = favicon;
+    document.getElementsByTagName("head")[0].appendChild(link);
+  }, []);
 
   const handleNodeClick = (addr) => {
     setRawAddress(addr);
