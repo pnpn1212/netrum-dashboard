@@ -1,7 +1,5 @@
-export default function Skeleton() {
+export default function Skeleton({ className = "" }) {
   return (
-    <div className="animate-pulse space-y-2">
-      <div className="h-6 bg-gray-700 rounded w-1/2" />
-    </div>
+    <div className={`animate-pulse bg-white/30 rounded ${className}`} />
   );
 }

@@ -1,47 +1,72 @@
-import { useEffect, useState } from "react";
-import { api } from "../api/netrumApi";
-import Skeleton from "../components/Skeleton";
+import React from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"; 
+import { SignalHigh } from "lucide-react";
 
-export default function ActiveNodes({ onSelect }) {
-  const [nodes, setNodes] = useState(null); 
-  const [error, setError] = useState(false);
+function cn(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
 
-  useEffect(() => {
-    api.activeNodes()
-      .then((r) => {
-        if (Array.isArray(r) && r.length > 0) {
-          setNodes(r);
-          setError(false);
-        } else {
-          setNodes([]);
-          setError(true);
-        }
-      })
-      .catch(() => {
-        setNodes([]);
-        setError(true);
-      });
-  }, []);
+const demoNodes = [];
 
-  if (nodes === null) return <Skeleton />;
-  if (error)
+export default function ActiveNodes() {
+  const nodes = demoNodes; 
+
+  const badgeClasses =
+    "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-orange-500/50 text-orange-50 shadow-[0_0_8px_rgba(249,115,22,0.25)]";
+
   return (
-    <div className="text-yellow-400/80 font-semibold text-sm">
-      Will be upgraded soon
+    <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm overflow-hidden">
+      <div className="p-4 border-b border-border bg-card/50 flex items-center gap-3">
+        <div className="p-2.5 rounded-xl border border-white flex items-center justify-center">
+          <SignalHigh className="h-5 w-5 text-primary" />
+        </div>
+
+        <div>
+          <h2 className="text-sm font-bold uppercase tracking-wider">
+            Network Participants
+          </h2>
+          <p className="text-[10px] text-muted-foreground mt-0.5">
+            Live node activity and performance
+          </p>
+        </div>
+
+        <span className={cn("ml-auto", badgeClasses)}>
+          {nodes.length} nodes
+        </span>
+      </div>
+
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent border-border">
+              <TableHead className="w-[100px]">Node ID</TableHead>
+              <TableHead>CPU</TableHead>
+              <TableHead>RAM</TableHead>
+              <TableHead>Disk</TableHead>
+              <TableHead>Speed</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            <TableRow>
+              <TableCell
+                colSpan={6}
+                className="h-32 text-center text-muted-foreground"
+              >
+                Data will appear here once API is connected
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
     </div>
-  );
-
-  return (
-    <ul className="space-y-1 text-xs">
-      {nodes.slice(0, 5).map((n) => (
-        <li
-          key={n}
-          className="cursor-pointer hover:text-indigo-400"
-          onClick={() => onSelect?.(n)}
-        >
-          {n}
-        </li>
-      ))}
-    </ul>
   );
 }

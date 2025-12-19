@@ -4,48 +4,60 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Card from "./components/Card";
 import LiteStats from "./features/LiteStats";
-import ActiveNodes from "./features/ActiveNodes";
 import NodeStats from "./features/NodeStats";
 import TaskStats from "./features/TaskStats";
-import Claim from "./features/Claim";
+import ActiveNodes from "./features/ActiveNodes";
 import Balance from "./features/Balance";
-import { ErrorBoundary } from "./components/ErrorBoundary";
+import Mining from "./features/Mining";
+import SystemRequirements from "./features/SystemRequirements";
 import gradientVideo from "./assets/Gradient.mp4";
-
-const cardIcons = {
-  network: "🌐",
-  activeNodes: "📊",
-  nodeAddress: "📥",
-  nodestats: "🖥",
-  task: "📝",
-  claim: "💰",
-  balance: "💵",
-};
+import { api } from "./api/netrumApi";
 
 export default function App() {
   const [rawAddress, setRawAddress] = useState("");
   const [address, setAddress] = useState("");
   const [nodeId, setNodeId] = useState(null);
   const [error, setError] = useState("");
+  const [cooldownActive, setCooldownActive] = useState(false);
+
+  const handleNodeClick = (addr) => {
+    setRawAddress(addr);
+  };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (rawAddress === "") {
-        setAddress("");
-        setError("");
+    if (!rawAddress) {
+      setAddress("");
+      setError("");
+      setNodeId(null);
+      return;
+    }
+
+    if (!/^0x[a-fA-F0-9]{40}$/.test(rawAddress)) {
+      setAddress("");
+      setError("Invalid wallet address. Must start with 0x and be 42 chars long.");
+      setNodeId(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setCooldownActive(true);
+      setAddress(rawAddress);
+      setError("");
+
+      try {
+        const nodeIdFromHistory = await api.claimHistoryNodeId(rawAddress);
+        setNodeId(nodeIdFromHistory);
+      } catch {
         setNodeId(null);
-      } else if (/^0x[a-fA-F0-9]{40}$/.test(rawAddress)) {
-        setAddress(rawAddress);
-        setError("");
-        setNodeId(null);
-      } else {
-        setAddress("");
-        setError("Invalid wallet address. Must start with 0x and be 42 chars long.");
-        setNodeId(null);
+      } finally {
+        setCooldownActive(false);
       }
     }, 300);
+
     return () => clearTimeout(timer);
   }, [rawAddress]);
+
+  const showCards = address && !error;
 
   return (
     <div className="relative min-h-screen overflow-hidden text-white">
@@ -64,18 +76,23 @@ export default function App() {
           <Header />
 
           <div className="grid md:grid-cols-2 gap-6">
-            <Card title={<span className="text-lg md:text-xl font-bold flex items-center gap-2">{cardIcons.network} Network Overview</span>} className="bg-transparent border-none">
+            <Card className="bg-transparent border-none md:col-span-2">
               <LiteStats />
-              <div className="text-xs text-gray-200 font-semibold opacity-70 mt-2">
-                The data will refresh every 30 seconds
-              </div>
             </Card>
-            <Card title={<span className="text-lg md:text-xl font-bold flex items-center gap-2">{cardIcons.activeNodes} Active Nodes List</span>} className="bg-transparent border-none">
-              <ActiveNodes />
+
+            <Card className="bg-transparent border-none md:col-span-2">
+              <SystemRequirements />
             </Card>
           </div>
 
-          <Card title={<span className="text-lg md:text-xl font-bold flex items-center gap-2">{cardIcons.nodeAddress} Node Address</span>} className="bg-transparent border-none mt-6">
+          <Card
+            title={
+              <span className="text-lg md:text-xl font-bold flex items-center gap-2">
+                🔍 Search Node Address
+              </span>
+            }
+            className="bg-transparent border-none mt-6"
+          >
             <input
               className="w-full bg-transparent border border-white/20 rounded-xl p-3 text-sm text-white placeholder-gray-400"
               placeholder="0x..."
@@ -89,27 +106,38 @@ export default function App() {
             )}
           </Card>
 
-          {address && !error && (
-            <ErrorBoundary>
-              <div className="grid md:grid-cols-2 gap-6 mt-6">
-                {/* Hàng 1: Node Status | Task Status */}
-                <Card title={<span className="text-lg md:text-xl font-bold flex items-center gap-2">{cardIcons.nodestats} Node Status</span>} className="bg-transparent border-none">
+          {showCards && (
+            <div className="space-y-6 mt-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <Card className="bg-transparent border-none">
                   <NodeStats nodeId={nodeId} />
                 </Card>
-                <Card title={<span className="text-lg md:text-xl font-bold flex items-center gap-2">{cardIcons.task} Task Status</span>} className="bg-transparent border-none">
-                  <TaskStats nodeId={nodeId} />
-                </Card>
 
-                {/* Hàng 2: Balance | Claim Status */}
-                <Card title={<span className="text-lg md:text-xl font-bold flex items-center gap-2">{cardIcons.balance} Balance</span>} className="bg-transparent border-none">
-                  <Balance wallet={address} />
-                </Card>
-                <Card title={<span className="text-lg md:text-xl font-bold flex items-center gap-2">{cardIcons.claim} Claim Status</span>} className="bg-transparent border-none">
-                  <Claim address={address} setNodeId={setNodeId} />
+                <Card className="bg-transparent border-none">
+                  <Mining nodeId={nodeId} walletAddress={address} />
                 </Card>
               </div>
-            </ErrorBoundary>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <Card className="bg-transparent border-none">
+                  <Balance wallet={address} />
+                </Card>
+
+                <Card className="bg-transparent border-none">
+                  <TaskStats nodeId={nodeId} />
+                </Card>
+              </div>
+            </div>
           )}
+
+          <div className="grid grid-cols-1 mt-6">
+            <Card className="bg-transparent border-none p-0">
+              <ActiveNodes
+                onNodeClick={handleNodeClick}
+                cooldownActive={cooldownActive}
+              />
+            </Card>
+          </div>
 
           <Footer />
         </div>

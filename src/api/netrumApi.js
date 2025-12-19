@@ -33,7 +33,6 @@ export async function fetchSafe(path, cooldown = 30_000) {
       };
     }
 
-    // chỉ set cooldown khi call thành công
     cooldownMap[key] = now;
     return data;
   } catch {
@@ -72,9 +71,19 @@ export const api = {
     return r.lastClaim?.nodeId || null;
   },
 
-  checkCooldown: (nodeId) => fetchSafe(`/metrics/check-cooldown/${nodeId}`),
+  checkCooldown: (nodeId) =>
+    fetchSafe(`/metrics/check-cooldown/${nodeId}`),
 
-  taskStats: (nodeId) => fetchSafe(`/polling/node-stats/${nodeId}`),
+  taskStats: (nodeId) =>
+    fetchSafe(`/polling/node-stats/${nodeId}`),
+
+  requirements: () =>
+    fetchSafe("/metrics/requirements", 300_000),
+
+  miningDebugContract: (wallet) =>
+    fetchSafe(`/mining/debug/contract/${wallet}`),
 };
+
+
 
 
