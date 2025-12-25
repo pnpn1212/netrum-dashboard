@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../api/netrumApi";
 import { 
   CheckSquare, 
@@ -22,32 +22,41 @@ function formatTime(iso) {
   if (!iso) return null;
   const d = new Date(iso);
   const p = (n) => String(n).padStart(2, "0");
-  return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}
-${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
+  return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())} ${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
 }
 
-export default function TaskStats({ nodeId }) {
+function Metric({ icon, label, value }) {
+  const displayValue = value === null ? <Skeleton className="w-12 h-3" /> : value;
+  return (
+    <div className="p-2 rounded bg-slate-800/40 border border-slate-700/50">
+      <div className="flex items-center gap-1 mb-1">
+        {icon}
+        <span className="text-xs text-slate-300">{label}</span>
+      </div>
+      <p className="font-mono text-xs text-white font-medium">{displayValue}</p>
+    </div>
+  );
+}
+
+export default function TaskStats({ nodeId, reloadKey }) {
   const [taskData, setTaskData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const isMounted = useRef(true);
 
   useEffect(() => {
-    isMounted.current = true;
-    setTaskData(null);
-    setLoading(true);
     if (!nodeId) return;
 
     let active = true;
+    setTaskData(null);
+    setLoading(true);
 
     const fetchTaskStats = async () => {
       try {
-        const r = await api.taskStats?.(nodeId);
+        const r = await api.taskStats?.(nodeId).catch(() => null);
         if (!active) return;
-        setTaskData(r && !r.error ? r : { error: true });
+        setTaskData(r && !r.error ? r : null);
       } catch (e) {
-        console.error("TaskStats fetch error:", e);
-        if (!active) return;
-        setTaskData({ error: true });
+        console.warn("TaskStats fetch warning:", e);
+        if (active) setTaskData(null);
       } finally {
         if (active) setLoading(false);
       }
@@ -55,22 +64,17 @@ export default function TaskStats({ nodeId }) {
 
     fetchTaskStats();
 
-    return () => {
-      active = false;
-      isMounted.current = false;
-    };
-  }, [nodeId]);
-
-  const showFallback = !taskData || taskData.error;
+    return () => { active = false; };
+  }, [nodeId, reloadKey]);
 
   const {
-    lastPolledAt,
-    lastTaskCompleted,
-    lastTaskAssigned,
-    ttsPowerStatus,
-    availableRam,
-    taskCount,
-  } = taskData && !taskData.error ? taskData : {};
+    lastPolledAt = null,
+    lastTaskCompleted = null,
+    lastTaskAssigned = null,
+    ttsPowerStatus = null,
+    availableRam = null,
+    taskCount = null,
+  } = taskData || {};
 
   const displayValue = (val, width = "w-16") =>
     loading || val === null || val === undefined
@@ -78,62 +82,51 @@ export default function TaskStats({ nodeId }) {
       : val;
 
   return (
-    <div className="relative overflow-hidden rounded-xl border bg-card p-6">
-      <div className="relative space-y-4">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2.5 rounded-xl bg-primary/20 border border-primary/30">
-            <ClipboardList className="h-5 w-5 text-primary" />
+    <div className="bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4 shadow-xl">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-700/50">
+          <ClipboardList className="h-4 w-4 text-slate-300" />
+        </div>
+        <div>
+          <h2 className="text-sm font-bold text-white">Task Stats</h2>
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <span>Task processing and system status</span>
           </div>
-          <h3 className="font-semibold flex items-center gap-2">Task Stats</h3>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <Metric
-            icon={<Database className="h-4 w-4 text-purple-400" />}
-            label="Total Tasks"
-            value={displayValue(taskCount?.toLocaleString("en-US"))}
-          />
-          <Metric
-            icon={<MemoryStick className="h-4 w-4 text-blue-400" />}
-            label="Available RAM"
-            value={displayValue(
-              availableRam ? availableRam.toLocaleString() + " GB" : null
-            )}
-          />
-          <Metric
-            icon={<Zap className="h-4 w-4 text-green-400" />}
-            label="TTS Power Status"
-            value={displayValue(ttsPowerStatus)}
-          />
-          <Metric
-            icon={<CheckSquare className="h-4 w-4 text-cyan-400" />}
-            label="Last Task Completed"
-            value={displayValue(formatTime(lastTaskCompleted), "w-32")}
-          />
-          <Metric
-            icon={<FileText className="h-4 w-4 text-green-400" />}
-            label="Last Polled"
-            value={displayValue(formatTime(lastPolledAt), "w-32")}
-          />
-          <Metric
-            icon={<Inbox className="h-4 w-4 text-yellow-400" />}
-            label="Last Task Assigned"
-            value={displayValue(formatTime(lastTaskAssigned), "w-32")}
-          />
         </div>
       </div>
-    </div>
-  );
-}
 
-function Metric({ icon, label, value }) {
-  return (
-    <div className="p-4 rounded-lg bg-muted/30 border flex flex-col items-start">
-      <div className="flex items-center gap-2 mb-1">
-        {icon}
-        <span className="text-xs text-muted-foreground">{label}</span>
+      <div className="grid grid-cols-2 gap-2">
+        <Metric 
+          icon={<Database className="h-3 w-3 text-purple-400" />} 
+          label="Total Tasks" 
+          value={displayValue(taskCount?.toLocaleString("en-US"))} 
+        />
+        <Metric 
+          icon={<MemoryStick className="h-3 w-3 text-blue-400" />} 
+          label="Available RAM" 
+          value={displayValue(availableRam ? availableRam.toLocaleString() + " GB" : null)} 
+        />
+        <Metric 
+          icon={<Zap className="h-3 w-3 text-green-400" />} 
+          label="TTS Power Status" 
+          value={displayValue(ttsPowerStatus)} 
+        />
+        <Metric 
+          icon={<CheckSquare className="h-3 w-3 text-cyan-400" />} 
+          label="Last Task Completed" 
+          value={displayValue(formatTime(lastTaskCompleted), "w-24")} 
+        />
+        <Metric 
+          icon={<FileText className="h-3 w-3 text-green-400" />} 
+          label="Last Polled" 
+          value={displayValue(formatTime(lastPolledAt), "w-24")} 
+        />
+        <Metric 
+          icon={<Inbox className="h-3 w-3 text-yellow-400" />} 
+          label="Last Task Assigned" 
+          value={displayValue(formatTime(lastTaskAssigned), "w-24")} 
+        />
       </div>
-      <p className="font-mono text-sm font-medium">{value}</p>
     </div>
   );
 }

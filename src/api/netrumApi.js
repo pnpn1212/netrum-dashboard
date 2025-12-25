@@ -56,7 +56,7 @@ export const api = {
     };
   },
 
-  activeNodes: () => fetchSafe("/lite/nodes/active"),
+  activeNodes: () => fetchSafe(`/lite/nodes/active`),
   nodeDetail: (id) => fetchSafe(`/lite/nodes/id/${id}`),
 
   mining: (id) => fetchSafe(`/mining/status/${id}`),
