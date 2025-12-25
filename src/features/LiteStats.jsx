@@ -94,11 +94,9 @@ function StatsCard({ title, value, subtitle, icon: Icon, variant, loading, trend
       style.border,
       style.glow
     )}>
-      {/* Animated background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
       <div className="relative p-3">
-        {/* Header with icon and trend */}
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
             <p className="text-xs font-medium text-slate-300 uppercase tracking-wider">{title}</p>
@@ -129,7 +127,6 @@ function StatsCard({ title, value, subtitle, icon: Icon, variant, loading, trend
           </div>
         </div>
 
-        {/* Main value */}
         <div className="mb-2">
           {loading ? (
             <Skeleton className="w-16 h-5 mb-1" />
@@ -139,7 +136,6 @@ function StatsCard({ title, value, subtitle, icon: Icon, variant, loading, trend
             </p>
           )}
           
-          {/* Subtitle and percentage */}
           <div className="flex items-center justify-between">
             <p className="text-xs text-slate-400">{subtitle ?? "-"}</p>
             {percentage !== undefined && showPercentage && (
@@ -153,7 +149,6 @@ function StatsCard({ title, value, subtitle, icon: Icon, variant, loading, trend
           </div>
         </div>
 
-        {/* Progress bar for percentage */}
         {percentage !== undefined && !loading && showPercentage && (
           <div className="w-full h-1 bg-slate-700/50 rounded-full overflow-hidden">
             <div 
@@ -163,7 +158,6 @@ function StatsCard({ title, value, subtitle, icon: Icon, variant, loading, trend
           </div>
         )}
 
-        {/* Loading shimmer overlay */}
         {loading && (
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.05] to-transparent -skew-x-12 animate-pulse" />
         )}
@@ -185,7 +179,6 @@ export default function LiteStats() {
   const [dataFullyLoaded, setDataFullyLoaded] = useState(false);
   const [isCountdownActive, setIsCountdownActive] = useState(false);
 
-  // Helper functions
   const calculateTrend = (current, previous) => {
     if (!previous || previous === 0) return null;
     const change = ((current - previous) / previous) * 100;
@@ -197,7 +190,6 @@ export default function LiteStats() {
     };
   };
 
-  // Animation function for percentage counting up
   const animatePercentage = (key, targetValue) => {
     const startValue = animatedPercentages[key] || 0;
     const duration = 1500; // 1.5 seconds
@@ -207,7 +199,6 @@ export default function LiteStats() {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
       
-      // Easing function for smooth animation
       const easeOutCubic = 1 - Math.pow(1 - progress, 3);
       const currentValue = Math.round(startValue + (targetValue - startValue) * easeOutCubic);
       
@@ -225,7 +216,6 @@ export default function LiteStats() {
   };
 
   const fetchStats = async () => {
-    // Reset countdown and pause it when starting fetch
     setCountdown(60);
     setIsCountdownActive(false);
     setIsRefreshing(true);
@@ -235,7 +225,6 @@ export default function LiteStats() {
       if (r?.error) {
         setErr(r.error);
       } else {
-        // Store previous data for trend calculation
         if (Object.keys(data).length > 0) {
           setPreviousData({ ...data });
         }
@@ -245,15 +234,12 @@ export default function LiteStats() {
         setData(newData);
         setLastUpdate(new Date().toISOString());
         
-        // Hide percentages and reset data fully loaded state
         setShowPercentages(false);
         setDataFullyLoaded(false);
         
-        // Add delay before showing percentages
         setTimeout(() => {
           setShowPercentages(true);
           
-          // Trigger percentage animations after delay
           const newActivePercentage = newData.total ? Math.round((newData.active / newData.total) * 100) : 0;
           const newInactivePercentage = newData.total ? Math.round((newData.inactive / newData.total) * 100) : 0;
           const newTaskEfficiency = newData.active && newData.totalTasks ? 
@@ -263,7 +249,6 @@ export default function LiteStats() {
           animatePercentage('inactive', newInactivePercentage);
           animatePercentage('taskEfficiency', Math.min(newTaskEfficiency, 100));
           
-          // Set data fully loaded and activate countdown after animation completes
           setTimeout(() => {
             setDataFullyLoaded(true);
             setIsCountdownActive(true);
@@ -280,11 +265,9 @@ export default function LiteStats() {
   };
 
   useEffect(() => {
-    // Initial fetch
     fetchStats();
   }, []);
 
-  // Separate effect for countdown that only runs when data is fully loaded and countdown is active
   useEffect(() => {
     if (!dataFullyLoaded || !isCountdownActive) return;
 
@@ -293,7 +276,6 @@ export default function LiteStats() {
       currentCountdown--;
       
       if (currentCountdown <= 0) {
-        // Time to fetch new data and reset countdown
         fetchStats();
         currentCountdown = 60;
       }
@@ -322,15 +304,12 @@ export default function LiteStats() {
 
   return (
     <div className="bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4 shadow-xl">
-      {/* Compact Header Section */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          {/* Compact icon container */}
           <div className="relative">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-600/20 border border-blue-500/30 backdrop-blur-sm shadow-lg shadow-blue-500/20">
               <Network className="h-4 w-4 text-blue-400" />
             </div>
-            {/* Pulsing indicator */}
             <div className={`absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full ${status.color} animate-pulse border border-slate-900`} />
           </div>
 
@@ -375,7 +354,6 @@ export default function LiteStats() {
           </div>
         </div>
 
-        {/* Compact quick stats summary */}
         {!loading && displayData.total && (
           <div className="hidden lg:flex items-center gap-4 text-center">
             <div className="flex flex-col">
@@ -395,7 +373,6 @@ export default function LiteStats() {
         )}
       </div>
 
-      {/* Compact Grid Layout */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <StatsCard
           title="Network Nodes"
@@ -453,7 +430,6 @@ export default function LiteStats() {
         />
       </div>
 
-      {/* Compact Network Health Summary */}
       {!loading && displayData.total && (
         <div className="bg-slate-800/40 rounded-xl p-3 border border-slate-700/50">
           <div className="flex items-center gap-2 mb-3">

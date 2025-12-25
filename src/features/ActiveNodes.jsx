@@ -10,7 +10,6 @@ import {
 import { SignalHigh, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Cpu, MemoryStick, HardDrive, Wifi, Clock, History, CalendarClock, CreditCard, Wallet, DollarSign, CheckSquare, Zap, Database, ClipboardList, FileText, Inbox } from "lucide-react";
 import { api } from "@/api/netrumApi";
 
-// Custom CSS for blinking animation
 const highlightAnimationStyles = `
   @keyframes purpleBlink {
     0%, 100% { 
@@ -56,7 +55,6 @@ export default function ActiveNodes() {
   const closeTimerRef = useRef(null);
   const previousRawAddressRef = useRef("");
 
-  // Inject CSS styles for highlighting
   useEffect(() => {
     const styleElement = document.createElement('style');
     styleElement.textContent = highlightAnimationStyles;
@@ -93,7 +91,6 @@ export default function ActiveNodes() {
       setActiveAddress("");
     }
     
-    // Clear highlights when address is cleared
     if (!currentAddress && previousAddress) {
       const nodeElement = document.querySelector(`[data-wallet="${previousAddress}"]`);
       if (nodeElement) {
@@ -158,13 +155,10 @@ export default function ActiveNodes() {
                 block: 'center' 
               });
               
-              // Add to highlighted rows for tracking
               setHighlightedRows(prev => new Set([...prev, rawAddress]));
               
-              // Start blinking animation
               nodeElement.classList.add('purple-blink');
               
-              // After 5 seconds, remove blinking and add fixed highlight
               setTimeout(() => {
                 nodeElement.classList.remove('purple-blink');
                 nodeElement.classList.add('purple-fixed');
@@ -196,13 +190,10 @@ export default function ActiveNodes() {
       setTimeout(() => {
             const nodeElement = document.querySelector(`[data-wallet="${rawAddress}"]`);
             if (nodeElement) {
-              // Add to highlighted rows for tracking
               setHighlightedRows(prev => new Set([...prev, rawAddress]));
               
-              // Start blinking animation
               nodeElement.classList.add('purple-blink');
               
-              // After 5 seconds, remove blinking and add fixed highlight
               setTimeout(() => {
                 nodeElement.classList.remove('purple-blink');
                 nodeElement.classList.add('purple-fixed');
@@ -384,7 +375,6 @@ export default function ActiveNodes() {
         usd: isNaN(eth) ? 0 : eth * ethUsd,
       };
 
-      // Only cache if still on same node
       if (currentNodeIdRef.current === nodeId) {
         setBalancesCache(prev => ({ ...prev, [address]: result }));
       }
@@ -397,7 +387,6 @@ export default function ActiveNodes() {
       return null;
     } finally {
       setLoadingBalances(prev => ({ ...prev, [address]: false }));
-      // Clean up tracker
       requestTrackerRef.current.delete(`balances_${address}`);
     }
   };
@@ -405,7 +394,6 @@ export default function ActiveNodes() {
   const fetchTaskStats = async (nodeId) => {
     if (!nodeId) return null;
 
-    // Cancel previous request if exists
     if (requestTrackerRef.current.has(`taskStats_${nodeId}`)) {
       const previousRequest = requestTrackerRef.current.get(`taskStats_${nodeId}`);
       if (previousRequest?.controller) {
@@ -413,27 +401,23 @@ export default function ActiveNodes() {
       }
     }
 
-    // Create new AbortController for this request
     const controller = new AbortController();
     const requestId = `taskStats_${nodeId}_${Date.now()}`;
     requestTrackerRef.current.set(`taskStats_${nodeId}`, { controller, requestId, nodeId });
 
-    // Check cache first
     if (nodeMetricsCache[nodeId]?.taskStats && currentNodeIdRef.current === nodeId) {
       return nodeMetricsCache[nodeId].taskStats;
     }
 
     try {
       const r = await api.taskStats?.(nodeId).catch(() => null);
-      
-      // Check if this request is still valid
+
       const tracker = requestTrackerRef.current.get(`taskStats_${nodeId}`);
       if (!tracker || tracker.requestId !== requestId || currentNodeIdRef.current !== nodeId) {
-        return null; // Request was superseded
+        return null; 
       }
 
       if (r && !r.error) {
-        // Only cache if still on same node
         if (currentNodeIdRef.current === nodeId) {
           setNodeMetricsCache(prev => ({
             ...prev,
@@ -452,7 +436,6 @@ export default function ActiveNodes() {
       }
       return null;
     } finally {
-      // Clean up tracker
       requestTrackerRef.current.delete(`taskStats_${nodeId}`);
     }
   };
@@ -463,7 +446,6 @@ export default function ActiveNodes() {
     const nodeId = identifier.startsWith('0x') ? getNodeIdFromAddress(identifier) : identifier;
     if (!nodeId) return null;
 
-    // Cancel previous request if exists
     if (requestTrackerRef.current.has(`metrics_${nodeId}`)) {
       const previousRequest = requestTrackerRef.current.get(`metrics_${nodeId}`);
       if (previousRequest?.controller) {
@@ -471,12 +453,10 @@ export default function ActiveNodes() {
       }
     }
 
-    // Create new AbortController for this request
     const controller = new AbortController();
     const requestId = `metrics_${nodeId}_${Date.now()}`;
     requestTrackerRef.current.set(`metrics_${nodeId}`, { controller, requestId, nodeId });
     
-    // Check cache first
     if (nodeMetricsCache[nodeId] && currentNodeIdRef.current === nodeId) {
       return nodeMetricsCache[nodeId];
     }
@@ -486,10 +466,9 @@ export default function ActiveNodes() {
     try {
       const res = await api.checkCooldown(nodeId);
       
-      // Check if this request is still valid
       const tracker = requestTrackerRef.current.get(`metrics_${nodeId}`);
       if (!tracker || tracker.requestId !== requestId || currentNodeIdRef.current !== nodeId) {
-        return null; // Request was superseded
+        return null;
       }
 
       const lastSync = res?.lastSuccessfulSync?.details || {};
@@ -504,7 +483,6 @@ export default function ActiveNodes() {
         address: getAddressFromNodeId(nodeId)
       };
 
-      // Only cache if still on same node
       if (currentNodeIdRef.current === nodeId) {
         setNodeMetricsCache(prev => ({ ...prev, [nodeId]: result }));
       }
@@ -517,14 +495,12 @@ export default function ActiveNodes() {
       return null;
     } finally {
       setLoadingMetrics(prev => ({ ...prev, [nodeId]: false }));
-      // Clean up tracker
       requestTrackerRef.current.delete(`metrics_${nodeId}`);
     }
   };
 
   useEffect(() => {
     if (!selectedNode) {
-      // Clear all data and cancel any ongoing requests
       setSelectedNodeMetrics(null);
       setSelectedNodeMining(null);
       setSelectedNodeTaskStats(null);
@@ -534,7 +510,6 @@ export default function ActiveNodes() {
       setLastDataUpdate(null);
       currentNodeIdRef.current = null;
       
-      // Cancel all active requests
       requestTrackerRef.current.forEach((request, key) => {
         if (request.controller) {
           request.controller.abort();
@@ -554,19 +529,15 @@ export default function ActiveNodes() {
       return;
     }
 
-    // Clear previous timers
     if (nodeSelectionTimerRef.current) {
       clearTimeout(nodeSelectionTimerRef.current);
       nodeSelectionTimerRef.current = null;
     }
 
-    // Set current node ID for request validation
     const nodeId = identifier.startsWith('0x') ? getNodeIdFromAddress(identifier) : identifier;
     currentNodeIdRef.current = nodeId;
 
-    // Debounce node selection to prevent rapid firing
     nodeSelectionTimerRef.current = setTimeout(async () => {
-      // Clear caches for this specific node to prevent contamination
       if (nodeId) {
         setNodeMetricsCache(prev => {
           const newCache = { ...prev };
@@ -616,7 +587,6 @@ export default function ActiveNodes() {
         })()
       ]);
 
-      // Only update state if this is still the current node
       if (currentNodeIdRef.current === nodeId) {
         setSelectedNodeMetrics(metricsResult);
         if (miningResult !== null) {
@@ -632,9 +602,8 @@ export default function ActiveNodes() {
         setLastDataUpdate(new Date().toISOString());
         setDataReady(true);
       }
-    }, 150); // 150ms debounce
+    }, 150);
 
-    // Cleanup function
     return () => {
       if (nodeSelectionTimerRef.current) {
         clearTimeout(nodeSelectionTimerRef.current);
@@ -677,14 +646,12 @@ export default function ActiveNodes() {
             try {
               const nodeId = identifier.startsWith('0x') ? getNodeIdFromAddress(identifier) : identifier;
               const address = identifier.startsWith('0x') ? identifier : getAddressFromNodeId(identifier);
-              
-              // Validate this is still the current node before proceeding
+
               if (currentNodeIdRef.current !== nodeId) {
                 console.log('Auto-refresh cancelled: node changed during refresh');
                 return;
               }
 
-              // Cancel any existing refresh requests
               if (requestTrackerRef.current.has(`refresh_${nodeId}`)) {
                 const previousRequest = requestTrackerRef.current.get(`refresh_${nodeId}`);
                 if (previousRequest?.controller) {
@@ -692,12 +659,10 @@ export default function ActiveNodes() {
                 }
               }
 
-              // Create new AbortController for this refresh
               const controller = new AbortController();
               const requestId = `refresh_${nodeId}_${Date.now()}`;
               requestTrackerRef.current.set(`refresh_${nodeId}`, { controller, requestId, nodeId });
 
-              // Clear caches for this specific node to get fresh data
               if (nodeId) {
                 setNodeMetricsCache(prev => {
                   const newCache = { ...prev };
@@ -743,7 +708,6 @@ export default function ActiveNodes() {
                 })()
               ]);
 
-              // Double-check this is still the current node before updating state
               if (currentNodeIdRef.current !== nodeId) {
                 console.log('Auto-refresh response ignored: node changed during refresh');
                 return;
@@ -767,7 +731,6 @@ export default function ActiveNodes() {
               }
             } finally {
               setIsRefreshing(false);
-              // Clean up refresh tracker
               requestTrackerRef.current.delete(`refresh_${nodeId}`);
             }
           };
@@ -790,7 +753,6 @@ export default function ActiveNodes() {
     const address = identifier.startsWith('0x') ? identifier : getAddressFromNodeId(nodeId);
     if (!address) return null;
 
-    // Cancel previous request if exists
     if (requestTrackerRef.current.has(`mining_${nodeId}`)) {
       const previousRequest = requestTrackerRef.current.get(`mining_${nodeId}`);
       if (previousRequest?.controller) {
@@ -798,12 +760,10 @@ export default function ActiveNodes() {
       }
     }
 
-    // Create new AbortController for this request
     const controller = new AbortController();
     const requestId = `mining_${nodeId}_${Date.now()}`;
     requestTrackerRef.current.set(`mining_${nodeId}`, { controller, requestId, nodeId });
 
-    // Check cache first
     if (miningCache[nodeId] && currentNodeIdRef.current === nodeId) {
       return miningCache[nodeId];
     }
@@ -817,10 +777,9 @@ export default function ActiveNodes() {
         api.miningDebugContract(address).catch(() => null),
       ]);
 
-      // Check if this request is still valid
       const tracker = requestTrackerRef.current.get(`mining_${nodeId}`);
       if (!tracker || tracker.requestId !== requestId || currentNodeIdRef.current !== nodeId) {
-        return null; // Request was superseded
+        return null;
       }
 
       const minedTokens = parseFloat(claimData?.minedTokensFormatted ?? miningData?.minedTokens ?? 0);
@@ -842,7 +801,6 @@ export default function ActiveNodes() {
         address: address
       };
 
-      // Only cache if still on same node
       if (currentNodeIdRef.current === nodeId) {
         setMiningCache(prev => ({ ...prev, [nodeId]: miningResult }));
       }
@@ -855,7 +813,6 @@ export default function ActiveNodes() {
       return null;
     } finally {
       setLoadingMining(prev => ({ ...prev, [nodeId]: false }));
-      // Clean up tracker
       requestTrackerRef.current.delete(`mining_${nodeId}`);
     }
   };
@@ -1018,10 +975,8 @@ export default function ActiveNodes() {
         </div>
       )}
 
-      {/* Compact Header Section */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          {/* Compact icon container */}
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-600/20 border border-emerald-500/30 backdrop-blur-sm shadow-lg shadow-emerald-500/20">
             <SignalHigh className="h-4 w-4 text-emerald-400" />
           </div>
@@ -1039,7 +994,6 @@ export default function ActiveNodes() {
           </div>
         </div>
 
-        {/* Right side with search and count */}
         <div className="flex items-center gap-3">
           <div className="relative">
             <input
@@ -1059,7 +1013,6 @@ export default function ActiveNodes() {
               }}
             />
             
-            {/* Loading spinner for search */}
             {cooldownActive && (
               <div className="absolute inset-y-0 right-8 flex items-center">
                 <div className="h-4 w-4 border-2 border-transparent border-t-emerald-400 border-r-teal-400 rounded-full animate-spin" />
@@ -1088,7 +1041,6 @@ export default function ActiveNodes() {
         </div>
       </div>
 
-      {/* Table Section */}
       <div className="rounded-xl border border-slate-600/30 bg-slate-800/30 backdrop-blur-sm overflow-hidden">
         <Table className="w-full">
           <TableHeader>
@@ -1214,7 +1166,6 @@ export default function ActiveNodes() {
         </Table>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-end mt-4 pt-4">
           <div className="flex items-center gap-2">

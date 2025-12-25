@@ -8,7 +8,6 @@ function GradientSpinner({ className = "" }) {
   );
 }
 
-// Types
 interface RequirementsData {
   CORES?: number;
   RAM?: number;
@@ -30,12 +29,10 @@ interface RequirementItem {
   status: 'loading' | 'empty' | 'error' | 'success';
 }
 
-// Skeleton Component với enhanced animation
 const SkeletonLoader: React.FC<{ className?: string }> = ({ className = "" }) => (
   <div className={`animate-pulse bg-gradient-to-r from-white/10 via-white/20 to-white/10 rounded-lg ${className}`} />
 );
 
-// Enhanced Requirement Card Component
 const RequirementCard: React.FC<{
   title: string;
   value: string | null;
@@ -133,7 +130,6 @@ const RequirementCard: React.FC<{
   );
 });
 
-// Empty State Component
 const EmptyState: React.FC = () => (
   <div className="bg-slate-800/40 border border-slate-600/50 rounded-xl p-4">
     <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -148,7 +144,6 @@ const EmptyState: React.FC = () => (
   </div>
 );
 
-// Main Component
 const SystemRequirements: React.FC = () => {
   const [data, setData] = useState<RequirementsData>({});
   const [loading, setLoading] = useState(true);
@@ -183,7 +178,6 @@ const SystemRequirements: React.FC = () => {
     fetchRequirements();
   }, [fetchRequirements]);
 
-  // Process data for display
   const displayData = useMemo<RequirementItem[]>(() => {
     const items: RequirementItem[] = [
       {
@@ -217,7 +211,6 @@ const SystemRequirements: React.FC = () => {
     return items;
   }, [data, loading]);
 
-  // Calculate if we have any meaningful data
   const hasData = useMemo(() => {
     return Object.values(data).some(value => value !== undefined && value !== null);
   }, [data]);
@@ -225,7 +218,6 @@ const SystemRequirements: React.FC = () => {
   if (loading && !hasData) {
     return (
       <div className="bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4 shadow-xl">
-        {/* Header */}
         <div className="flex items-center gap-3 mb-4">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-700/50">
             <Power className="h-4 w-4 text-slate-300" />
@@ -245,7 +237,6 @@ const SystemRequirements: React.FC = () => {
           </div>
         </div>
 
-        {/* Data Cards */}
         <div className="grid grid-cols-4 gap-3">
           {displayData.map((_, index) => (
             <RequirementCard
@@ -265,7 +256,6 @@ const SystemRequirements: React.FC = () => {
   if (error && !hasData) {
     return (
       <div className="bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4 shadow-xl">
-        {/* Header */}
         <div className="flex items-center gap-3 mb-4">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-700/50">
             <Power className="h-4 w-4 text-slate-300" />
@@ -286,7 +276,6 @@ const SystemRequirements: React.FC = () => {
           </div>
         </div>
 
-        {/* Empty State */}
         <EmptyState />
       </div>
     );
@@ -294,7 +283,6 @@ const SystemRequirements: React.FC = () => {
 
   return (
     <div className="bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4 shadow-xl">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-700/50">
           <Power className="h-4 w-4 text-slate-300" />
@@ -316,7 +304,6 @@ const SystemRequirements: React.FC = () => {
         </div>
       </div>
 
-      {/* Data Cards */}
       <div className="grid grid-cols-4 gap-3">
         {displayData.map((item, index) => (
           <RequirementCard

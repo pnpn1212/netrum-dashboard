@@ -45,11 +45,11 @@ export default function NodeStats({ nodeId, reloadKey }) {
 
     const fetchData = async () => {
       setLoading(true);
-      setStats(null); // reset để Skeleton hiển thị
+      setStats(null);
       try {
         const res = await api.checkCooldown(nodeId).catch(() => null);
         if (!active) return;
-        setStats(res || null); // null vẫn giữ Skeleton
+        setStats(res || null);
       } catch (e) {
         console.warn("NodeStats fetch warning:", e);
         if (active) setStats(null);

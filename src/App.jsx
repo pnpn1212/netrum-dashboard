@@ -57,7 +57,6 @@ export default function App() {
       setIsLoading(true);
       setAddress(rawAddress);
       setError("");
-      // Always show tooltip when address is valid
       setShowTooltip(true);
 
       try {
@@ -74,7 +73,6 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [rawAddress]);
 
-  // Only show cards below when no valid address is entered and not loading
   const showCards = address && !showTooltip && !isLoading;
 
   const handleCloseTooltip = () => {
@@ -95,7 +93,7 @@ export default function App() {
 
       <Header />
 
-      <div className="relative z-10 bg-black/20 pb-24"> {/* pb-24 for footer spacing */}
+      <div className="relative z-10 bg-black/20 pb-24"> 
         <div className="max-w-7xl mx-auto px-6 py-10 space-y-12">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
@@ -175,7 +173,6 @@ export default function App() {
             </div>
           )}
 
-          {/* Tooltip with 4 cards */}
           <NodeTooltip 
             isOpen={showTooltip} 
             onClose={handleCloseTooltip}
