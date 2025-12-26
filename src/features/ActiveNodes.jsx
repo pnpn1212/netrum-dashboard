@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   Table,
   TableBody,
@@ -39,6 +39,8 @@ function cn(...classes) {
 export default function ActiveNodes() {
   const [nodes, setNodes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [retrying, setRetrying] = useState(false);
+  const [hasEverHadData, setHasEverHadData] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const nodesPerPage = 10;
@@ -54,6 +56,35 @@ export default function ActiveNodes() {
   const hoveringCardRef = useRef(false);
   const closeTimerRef = useRef(null);
   const previousRawAddressRef = useRef("");
+  const retryIntervalRef = useRef(null);
+
+  const fetchWithRetry = useCallback(() => {
+    api.activeNodes().then((r) => {
+      if (r?.error || r?.cooldown) return;
+      
+      const list = Array.isArray(r?.nodes) ? r.nodes : [];
+      setNodes(list);
+      
+      if (list.length > 0) {
+
+        setRetrying(false);
+        setLoading(false);
+        setHasEverHadData(true);
+        if (retryIntervalRef.current) {
+          clearTimeout(retryIntervalRef.current);
+          retryIntervalRef.current = null;
+        }
+      } else {
+        if (!hasEverHadData) {
+          setRetrying(true);
+          retryIntervalRef.current = setTimeout(fetchWithRetry, 3000);
+        } else {
+          setLoading(false);
+          setRetrying(false);
+        }
+      }
+    });
+  }, [hasEverHadData]);
 
   useEffect(() => {
     const styleElement = document.createElement('style');
@@ -66,22 +97,15 @@ export default function ActiveNodes() {
   }, []);
 
   useEffect(() => {
-    let mounted = true;
-
-    api.activeNodes().then((r) => {
-      if (!mounted) return;
-      setLoading(false);
-
-      if (r?.error || r?.cooldown) return;
-
-      const list = Array.isArray(r?.nodes) ? r.nodes : [];
-      setNodes(list);
-    });
-
+    fetchWithRetry();
+    
     return () => {
-      mounted = false;
+      if (retryIntervalRef.current) {
+        clearTimeout(retryIntervalRef.current);
+        retryIntervalRef.current = null;
+      }
     };
-  }, []);
+  }, [fetchWithRetry]);
 
   useEffect(() => {
     const currentAddress = rawAddress;
@@ -1146,7 +1170,7 @@ export default function ActiveNodes() {
                 </TableRow>
               ))}
 
-            {!loading && nodes.length === 0 && (
+            {!loading && nodes.length === 0 && hasEverHadData && (
               <TableRow>
                 <TableCell
                   colSpan={5}

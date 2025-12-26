@@ -38,7 +38,11 @@ function formatNumber(num) {
   return Number(num).toLocaleString("en-US");
 }
 
-
+function formatCountdown(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
+}
 
 function cn(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -175,7 +179,7 @@ export default function LiteStats() {
   const [previousData, setPreviousData] = useState({});
   const [animatedPercentages, setAnimatedPercentages] = useState({});
   const [showPercentages, setShowPercentages] = useState(false);
-  const [countdown, setCountdown] = useState(60);
+  const [countdown, setCountdown] = useState(300);
   const [dataFullyLoaded, setDataFullyLoaded] = useState(false);
   const [isCountdownActive, setIsCountdownActive] = useState(false);
 
@@ -192,7 +196,7 @@ export default function LiteStats() {
 
   const animatePercentage = (key, targetValue) => {
     const startValue = animatedPercentages[key] || 0;
-    const duration = 1500; // 1.5 seconds
+    const duration = 1500;
     const startTime = Date.now();
     
     const animate = () => {
@@ -216,14 +220,14 @@ export default function LiteStats() {
   };
 
   const fetchStats = async () => {
-    setCountdown(60);
-    setIsCountdownActive(false);
+    setCountdown(300);
     setIsRefreshing(true);
     
     try {
       const r = await api.liteStats();
       if (r?.error) {
         setErr(r.error);
+        setIsCountdownActive(true);
       } else {
         if (Object.keys(data).length > 0) {
           setPreviousData({ ...data });
@@ -231,33 +235,39 @@ export default function LiteStats() {
         
         setErr("");
         const newData = r || {};
-        setData(newData);
-        setLastUpdate(new Date().toISOString());
-        
-        setShowPercentages(false);
-        setDataFullyLoaded(false);
-        
-        setTimeout(() => {
-          setShowPercentages(true);
+
+        if (!newData || (typeof newData === 'object' && Object.keys(newData).length === 0)) {
+          setErr("Waiting for valid data...");
+          setIsCountdownActive(true);
+        } else {
+          setData(newData);
+          setLastUpdate(new Date().toISOString());
           
-          const newActivePercentage = newData.total ? Math.round((newData.active / newData.total) * 100) : 0;
-          const newInactivePercentage = newData.total ? Math.round((newData.inactive / newData.total) * 100) : 0;
-          const newTaskEfficiency = newData.active && newData.totalTasks ? 
-            Math.round((newData.totalTasks / newData.active) * 100) : 0;
-            
-          animatePercentage('active', newActivePercentage);
-          animatePercentage('inactive', newInactivePercentage);
-          animatePercentage('taskEfficiency', Math.min(newTaskEfficiency, 100));
+          setShowPercentages(false);
+          setDataFullyLoaded(false);
           
           setTimeout(() => {
-            setDataFullyLoaded(true);
-            setIsCountdownActive(true);
-          }, 2300); // 800ms delay + 1500ms animation duration
-        }, 800); // 800ms delay before showing percentages
+            setShowPercentages(true);
+            
+            const newActivePercentage = newData.total ? Math.round((newData.active / newData.total) * 100) : 0;
+            const newInactivePercentage = newData.total ? Math.round((newData.inactive / newData.total) * 100) : 0;
+            const newTaskEfficiency = newData.active && newData.totalTasks ? 
+              Math.round((newData.totalTasks / newData.active) * 100) : 0;
+              
+            animatePercentage('active', newActivePercentage);
+            animatePercentage('inactive', newInactivePercentage);
+            animatePercentage('taskEfficiency', Math.min(newTaskEfficiency, 100));
+            
+            setTimeout(() => {
+              setDataFullyLoaded(true);
+              setIsCountdownActive(true);
+            }, 2300);
+          }, 800); 
+        }
       }
     } catch (e) {
       setErr("Unable to fetch network stats");
-      console.error(e);
+      setIsCountdownActive(true);
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -269,22 +279,20 @@ export default function LiteStats() {
   }, []);
 
   useEffect(() => {
-    if (!dataFullyLoaded || !isCountdownActive) return;
-
-    let currentCountdown = 60;
+    let currentCountdown = 300;
     const timer = setInterval(() => {
       currentCountdown--;
       
       if (currentCountdown <= 0) {
         fetchStats();
-        currentCountdown = 60;
+        currentCountdown = 300;
       }
       
       setCountdown(currentCountdown);
-    }, 1000); // Update every second
+    }, 1000);
     
     return () => clearInterval(timer);
-  }, [dataFullyLoaded, isCountdownActive]);
+  }, []);
 
   const displayData = {
     total: data.total ?? null,
@@ -331,10 +339,10 @@ export default function LiteStats() {
                 </div>
               )}
               
-              {dataFullyLoaded && isCountdownActive && lastUpdate && (
+              {(!loading || err) && (
                 <div className="flex items-center gap-1">
                   <Activity className="w-3 h-3 text-emerald-400" />
-                  <span className="text-emerald-400">Next refresh in {countdown}s</span>
+                  <span className="text-emerald-400">Next refresh in {formatCountdown(countdown)}</span>
                 </div>
               )}
               
@@ -385,7 +393,6 @@ export default function LiteStats() {
           showPercentage={showPercentages}
           showTrend={showPercentages}
           trend={calculateTrend(displayData.total, previousData.total)?.direction === 'up' ? "↗ +" + calculateTrend(displayData.total, previousData.total)?.value + "%" : calculateTrend(displayData.total, previousData.total)?.direction === 'down' ? "↘ -" + calculateTrend(displayData.total, previousData.total)?.value + "%" : null}
-          trendIcon={calculateTrend(displayData.total, previousData.total)?.direction === 'up' ? ArrowUpRight : calculateTrend(displayData.total, previousData.total)?.direction === 'down' ? ArrowDownRight : null}
         />
 
         <StatsCard
@@ -399,7 +406,6 @@ export default function LiteStats() {
           showPercentage={showPercentages}
           showTrend={showPercentages}
           trend={calculateTrend(displayData.active, previousData.active)?.direction === 'up' ? "↗ +" + calculateTrend(displayData.active, previousData.active)?.value + "%" : calculateTrend(displayData.active, previousData.active)?.direction === 'down' ? "↘ -" + calculateTrend(displayData.active, previousData.active)?.value + "%" : (animatedPercentages.active || 0) > 80 ? "Excellent" : (animatedPercentages.active || 0) > 60 ? "Good" : "Fair"}
-          trendIcon={calculateTrend(displayData.active, previousData.active)?.direction === 'up' ? ArrowUpRight : calculateTrend(displayData.active, previousData.active)?.direction === 'down' ? ArrowDownRight : null}
         />
 
         <StatsCard
@@ -426,7 +432,6 @@ export default function LiteStats() {
           showPercentage={showPercentages}
           showTrend={showPercentages}
           trend={calculateTrend(displayData.totalTasks, previousData.totalTasks)?.direction === 'up' ? "↗ +" + calculateTrend(displayData.totalTasks, previousData.totalTasks)?.value + "%" : calculateTrend(displayData.totalTasks, previousData.totalTasks)?.direction === 'down' ? "↘ -" + calculateTrend(displayData.totalTasks, previousData.totalTasks)?.value + "%" : (animatedPercentages.taskEfficiency || 0) > 150 ? "High efficiency" : (animatedPercentages.taskEfficiency || 0) > 100 ? "Good performance" : "Standard"}
-          trendIcon={calculateTrend(displayData.totalTasks, previousData.totalTasks)?.direction === 'up' ? ArrowUpRight : calculateTrend(displayData.totalTasks, previousData.totalTasks)?.direction === 'down' ? ArrowDownRight : null}
         />
       </div>
 

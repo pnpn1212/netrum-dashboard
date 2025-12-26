@@ -149,30 +149,61 @@ const SystemRequirements: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
-  const fetchRequirements = useCallback(async () => {
+  const fetchRequirements = useCallback(async (isRetry = false) => {
     try {
-      setLoading(true);
-      setIsRefreshing(true);
-      setError(null);
+      if (isRetry) {
+      } else {
+        setLoading(true);
+        setIsRefreshing(true);
+        setError(null);
+      }
 
       const result: ApiResponse = await api.requirements();
       
       if (result.error) {
         setError(result.error);
+        if (isRetry) {
+          const nextDelay = Math.min(Math.pow(2, retryCount) * 1000, 60000);
+          setRetryCount(prev => prev + 1);
+
+          setTimeout(() => {
+            fetchRequirements(true);
+          }, nextDelay);
+        }
       } else if (result.requirements) {
         setData(result.requirements);
         setError(null);
+        setRetryCount(0);
       } else {
         setError('No data received');
+        if (isRetry) {
+          const nextDelay = Math.min(Math.pow(2, retryCount) * 1000, 60000);
+          setRetryCount(prev => prev + 1);
+          
+          setTimeout(() => {
+            fetchRequirements(true);
+          }, nextDelay);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
+      if (isRetry) {
+        const nextDelay = Math.min(Math.pow(2, retryCount) * 1000, 60000);
+        setRetryCount(prev => prev + 1);
+        
+        setTimeout(() => {
+          fetchRequirements(true);
+        }, nextDelay);
+      }
     } finally {
-      setLoading(false);
-      setIsRefreshing(false);
+      if (!isRetry) {
+        setLoading(false);
+        setIsRefreshing(false);
+      }
     }
-  }, []);
+  }, [retryCount]);
 
   useEffect(() => {
     fetchRequirements();
@@ -253,7 +284,7 @@ const SystemRequirements: React.FC = () => {
     );
   }
 
-  if (error && !hasData) {
+  if (error && !hasData && retryCount === 0) {
     return (
       <div className="bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4 shadow-xl">
         <div className="flex items-center gap-3 mb-4">
@@ -277,6 +308,42 @@ const SystemRequirements: React.FC = () => {
         </div>
 
         <EmptyState />
+      </div>
+    );
+  }
+
+  if (error && !hasData && retryCount > 0) {
+    return (
+      <div className="bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4 shadow-xl">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-700/50">
+            <Power className="h-4 w-4 text-slate-300" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-0.5">
+              <h2 className="text-sm font-bold text-white">
+                System Requirements
+              </h2>
+              <GradientSpinner className="border-t-emerald-400 border-r-teal-400" />
+            </div>
+            <div className="flex items-center gap-2">
+              <SkeletonLoader className="w-12 h-2" />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-4 gap-3">
+          {displayData.map((_, index) => (
+            <RequirementCard
+              key={index}
+              title=""
+              value={null}
+              icon={Cpu}
+              status="loading"
+              delay={index * 100}
+            />
+          ))}
+        </div>
       </div>
     );
   }
