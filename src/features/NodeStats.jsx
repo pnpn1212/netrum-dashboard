@@ -34,7 +34,7 @@ function Metric({ icon, label, value }) {
   );
 }
 
-export default function NodeStats({ nodeId, reloadKey }) {
+export default function NodeStats({ nodeId, reloadKey, onLoadComplete }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -54,7 +54,10 @@ export default function NodeStats({ nodeId, reloadKey }) {
         console.warn("NodeStats fetch warning:", e);
         if (active) setStats(null);
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+          if (onLoadComplete) onLoadComplete();
+        }
       }
     };
 

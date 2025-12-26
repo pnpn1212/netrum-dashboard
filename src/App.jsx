@@ -20,6 +20,13 @@ export default function App() {
   const [cooldownActive, setCooldownActive] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [cardLoadingStates, setCardLoadingStates] = useState({
+    nodeStats: false,
+    mining: false,
+    balance: false,
+    taskStats: false
+  });
 
   useEffect(() => {
     const link = document.querySelector("link[rel*='icon']") || document.createElement("link");
@@ -32,6 +39,22 @@ export default function App() {
   const handleNodeClick = (addr) => {
     setRawAddress(addr);
   };
+
+  const updateCardLoading = (cardName, isLoading) => {
+    setCardLoadingStates(prev => ({
+      ...prev,
+      [cardName]: isLoading
+    }));
+  };
+
+  useEffect(() => {
+    const hasStartedLoading = Object.values(cardLoadingStates).some(loading => loading === true);
+    const allCardsLoaded = Object.values(cardLoadingStates).every(loading => loading === false);
+    
+    if (hasStartedLoading && allCardsLoaded) {
+      setIsLoading(false);
+    }
+  }, [cardLoadingStates]);
 
   useEffect(() => {
     if (!rawAddress) {
@@ -58,6 +81,14 @@ export default function App() {
       setAddress(rawAddress);
       setError("");
       setShowTooltip(true);
+      setReloadKey(prev => prev + 1);
+      
+      setCardLoadingStates({
+        nodeStats: true,
+        mining: true,
+        balance: true,
+        taskStats: true
+      });
 
       try {
         const nodeIdFromHistory = await api.claimHistoryNodeId(rawAddress);
@@ -81,6 +112,14 @@ export default function App() {
     setAddress("");
     setNodeId(null);
     setError("");
+    setIsLoading(false);
+    setCooldownActive(false);
+    setCardLoadingStates({
+      nodeStats: false,
+      mining: false,
+      balance: false,
+      taskStats: false
+    });
   };
 
   return (
@@ -125,15 +164,15 @@ export default function App() {
                 className="w-full bg-slate-800/40 border border-slate-600/50 rounded-xl p-3 text-sm text-white placeholder-gray-400 focus:border-slate-500/50 focus:ring-1 focus:ring-slate-500/50 transition-colors"
                 placeholder="0x..."
                 value={rawAddress}
-                onChange={(e) => !address && setRawAddress(e.target.value.trim())}
-                readOnly={!!address}
-                onCopy={(e) => address && e.preventDefault()}
-                onCut={(e) => address && e.preventDefault()}
-                onPaste={(e) => address && e.preventDefault()}
-                onMouseDown={(e) => address && e.preventDefault()}
-                onSelect={(e) => address && e.preventDefault()}
+                onChange={(e) => setRawAddress(e.target.value.trim())}
+                readOnly={isLoading}
+                onCopy={(e) => isLoading && e.preventDefault()}
+                onCut={(e) => isLoading && e.preventDefault()}
+                onPaste={(e) => isLoading && e.preventDefault()}
+                onMouseDown={(e) => isLoading && e.preventDefault()}
+                onSelect={(e) => isLoading && e.preventDefault()}
                 style={{
-                  userSelect: address ? "none" : "text",
+                  userSelect: isLoading ? "none" : "text",
                   pointerEvents: "auto",
                 }}
               />
@@ -144,6 +183,15 @@ export default function App() {
                     setAddress("");
                     setNodeId(null);
                     setError("");
+                    setIsLoading(false);
+                    setCooldownActive(false);
+                    setShowTooltip(false);
+                    setCardLoadingStates({
+                      nodeStats: false,
+                      mining: false,
+                      balance: false,
+                      taskStats: false
+                    });
                   }}
                   className="absolute inset-y-0 right-3 flex items-center text-red-500 hover:text-red-400 transition-colors"
                   type="button"
@@ -162,13 +210,13 @@ export default function App() {
           {showCards && (
             <div className="space-y-6 mt-6">
               <div className="grid md:grid-cols-2 gap-6">
-                <NodeStats nodeId={nodeId} />
-                <Mining nodeId={nodeId} walletAddress={address} />
+                <NodeStats nodeId={nodeId} reloadKey={reloadKey} onLoadComplete={() => updateCardLoading('nodeStats', false)} />
+                <Mining nodeId={nodeId} walletAddress={address} reloadKey={reloadKey} onLoadComplete={() => updateCardLoading('mining', false)} />
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
-                <Balance wallet={address} />
-                <TaskStats nodeId={nodeId} />
+                <Balance wallet={address} reloadKey={reloadKey} onLoadComplete={() => updateCardLoading('balance', false)} />
+                <TaskStats nodeId={nodeId} reloadKey={reloadKey} onLoadComplete={() => updateCardLoading('taskStats', false)} />
               </div>
             </div>
           )}
@@ -178,10 +226,10 @@ export default function App() {
             onClose={handleCloseTooltip}
             loading={isLoading}
           >
-            <NodeStats nodeId={nodeId} />
-            <Mining nodeId={nodeId} walletAddress={address} />
-            <Balance wallet={address} />
-            <TaskStats nodeId={nodeId} />
+            <NodeStats nodeId={nodeId} reloadKey={reloadKey} onLoadComplete={() => updateCardLoading('nodeStats', false)} />
+            <Mining nodeId={nodeId} walletAddress={address} reloadKey={reloadKey} onLoadComplete={() => updateCardLoading('mining', false)} />
+            <Balance wallet={address} reloadKey={reloadKey} onLoadComplete={() => updateCardLoading('balance', false)} />
+            <TaskStats nodeId={nodeId} reloadKey={reloadKey} onLoadComplete={() => updateCardLoading('taskStats', false)} />
           </NodeTooltip>
 
           <div className="grid grid-cols-1 mt-6">

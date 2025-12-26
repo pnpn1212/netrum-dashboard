@@ -10,7 +10,7 @@ function Skeleton({ className = "" }) {
   return <div className={`animate-pulse bg-white/30 rounded ${className}`} />;
 }
 
-export default function Mining({ nodeId: propNodeId, walletAddress, reloadKey }) {
+export default function Mining({ nodeId: propNodeId, walletAddress, reloadKey, onLoadComplete }) {
   const [nodeId, setNodeId] = useState(propNodeId || null);
   const [canStartMining, setCanStartMining] = useState(null);
   const [lastMiningStart, setLastMiningStart] = useState(null);
@@ -51,6 +51,7 @@ export default function Mining({ nodeId: propNodeId, walletAddress, reloadKey })
           if (!active || !history?.lastClaim?.nodeId) {
             setNodeId(null);
             setLoading(false);
+            if (onLoadComplete) onLoadComplete();
             return;
           }
           currentNodeId = history.lastClaim.nodeId;
@@ -86,7 +87,10 @@ export default function Mining({ nodeId: propNodeId, walletAddress, reloadKey })
       } catch (e) {
         console.warn("Mining fetch warning:", e);
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+          if (onLoadComplete) onLoadComplete();
+        }
       }
     };
 

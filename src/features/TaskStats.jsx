@@ -38,7 +38,7 @@ function Metric({ icon, label, value }) {
   );
 }
 
-export default function TaskStats({ nodeId, reloadKey }) {
+export default function TaskStats({ nodeId, reloadKey, onLoadComplete }) {
   const [taskData, setTaskData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -58,7 +58,10 @@ export default function TaskStats({ nodeId, reloadKey }) {
         console.warn("TaskStats fetch warning:", e);
         if (active) setTaskData(null);
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+          if (onLoadComplete) onLoadComplete();
+        }
       }
     };
 

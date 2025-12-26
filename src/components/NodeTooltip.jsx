@@ -18,7 +18,10 @@ export default function NodeTooltip({ isOpen, onClose, children, loading = false
       
       <div className="relative bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-6 shadow-2xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <button
-          onClick={onClose}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
           className="absolute top-4 right-4 z-10 p-2 rounded-full bg-slate-800/60 hover:bg-slate-700/60 border border-slate-600/50 transition-colors"
         >
           <X className="h-5 w-5 text-slate-300 hover:text-white" />

@@ -20,7 +20,7 @@ function Skeleton({ className = "" }) {
   return <div className={`animate-pulse bg-white/30 rounded ${className}`} />;
 }
 
-export default function Balance({ wallet, reloadKey }) {
+export default function Balance({ wallet, reloadKey, onLoadComplete }) {
   const [balances, setBalances] = useState({ eth: null, npt: null, usd: null });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -84,6 +84,7 @@ export default function Balance({ wallet, reloadKey }) {
       setError("Failed to load balances.");
     } finally {
       setLoading(false);
+      if (onLoadComplete) onLoadComplete();
     }
   };
 
